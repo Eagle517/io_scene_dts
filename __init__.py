@@ -39,6 +39,7 @@ from bpy.props import (BoolProperty,
                        StringProperty,
                        EnumProperty,
                        PointerProperty,
+                       CollectionProperty
                        )
 from bpy_extras.io_utils import (ImportHelper,
                                  ExportHelper,
@@ -94,6 +95,8 @@ class ImportDSQ(bpy.types.Operator, ImportHelper):
     bl_options = {'PRESET', 'UNDO'}
     filename_ext = ".dsq"
 
+    files: CollectionProperty(type=bpy.types.PropertyGroup)
+
     filter_glob: StringProperty(
         default="*.dsq",
         options={'HIDDEN'},
@@ -108,9 +111,15 @@ class ImportDSQ(bpy.types.Operator, ImportHelper):
 
     def execute(self, context):
         from . import import_dsq
+        from os import path
 
-        keywords = self.as_keywords(ignore=("filter_glob", "split_mode"))
-        return import_dsq.load(self, context, **keywords)
+        dir_path = path.dirname(self.filepath)
+
+        for _, i in enumerate(self.files):
+            file = path.join(dir_path, i.name)
+            import_dsq.load(self, context, file)
+
+        return {"FINISHED"}
 
 class ExportDTS(bpy.types.Operator, ExportHelper):
     """Save a Torque DTS File"""
