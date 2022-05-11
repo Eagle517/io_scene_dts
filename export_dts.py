@@ -541,6 +541,10 @@ def save(operator, context, filepath,
                         if bmat not in material_table:
                             material_table[bmat] = export_material(bmat, shape)
 
+                            detail_map = bmat.torque_props.detail_map_mat
+                            if detail_map != None and detail_map not in material_table:
+                                material_table[detail_map] = export_material(detail_map, shape)
+
                         flags |= material_table[bmat] & Primitive.MaterialMask
                     elif blank_material:
                         if blank_material_index is None:
