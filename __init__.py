@@ -355,6 +355,8 @@ class TorqueMaterialProperties(bpy.types.PropertyGroup):
     ifl_name: StringProperty(name="Name")
     no_mip_mapping: BoolProperty(name="No Mip Mapping", default=False)
     mip_map_zero_border: BoolProperty(name="Mip Map Zero Border", default=False)
+    detail_map_mat: PointerProperty(name="Detail Map", type=bpy.types.Material, poll=lambda s, o: not o.is_grease_pencil)#, update=lambda s, c: print(c.material.torque_props.detail_map_mat))
+    detail_map_scale: FloatProperty(name="Detail Map Scale", default=1.0)
 
 class TorqueMaterialPanel(bpy.types.Panel):
     bl_idname = "MATERIAL_PT_torque"
@@ -404,6 +406,13 @@ class TorqueMaterialPanel(bpy.types.Panel):
         sublayout = row.column()
         sublayout.enabled = not obj.torque_props.no_mip_mapping
         sublayout.prop(obj.torque_props, "mip_map_zero_border")
+
+        row = layout.row()
+        row.prop_search(obj.torque_props, "detail_map_mat", bpy.data, "materials")
+
+        row = layout.row()
+        row.prop(obj.torque_props, "detail_map_scale")
+        row.enabled = obj.torque_props.detail_map_mat != None
 
 class TorqueVisProperties(bpy.types.PropertyGroup):
     vis_value: FloatProperty(name="Visibility", default=1, min=0, max=1)#, hard_min=0, hard_max=1)

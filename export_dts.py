@@ -109,7 +109,9 @@ def export_material(mat, shape):
             slot=material_index)
         shape.iflmaterials.append(ifl)
 
-    material = Material(name=undup_name(mat.name), flags=flags)
+    detail_scale = mat.torque_props.detail_map_scale
+
+    material = Material(name=undup_name(mat.name), flags=flags, detailScale=detail_scale)
     material.bl_mat = mat
 
     shape.materials.append(material)
@@ -347,7 +349,7 @@ def save_meshes(scene, shape, node_lookup, select_object):
             scene_objects[name] = (object, {})
 
         for slot in bobj.material_slots:
-            if slot.material.torque_props.use_transparency:
+            if hasattr(slot.material, "torque_props") and slot.material.torque_props.use_transparency:
                 scene_objects[name][0].has_transparency = True
 
         if lod_name in scene_objects[name][1]:
@@ -602,6 +604,15 @@ def save(operator, context, filepath,
             else:
                 # print("Adding Null mesh for object {} in LOD {}".format(shape.names[object.name], lod_name))
                 shape.meshes.append(Mesh(Mesh.NullType))
+
+    # detail maps, have to do it after every material has been assigned an index
+    for mat in shape.materials:
+        bmat = mat.bl_mat
+        detail_mat = bmat.torque_props.detail_map_mat
+        if detail_mat != None and detail_mat in material_table:
+            mat.flags |= Material.DetailMap
+            mat.detailMap = material_table[detail_mat]
+
 
     print("Creating subshape with " + str(len(shape.nodes)) + " nodes and " + str(len(shape.objects)) + " objects")
     shape.subshapes.append(Subshape(0, 0, 0, len(shape.nodes), len(shape.objects), 0))
